@@ -32,5 +32,27 @@ Choose the appropriate installer for your operating system and follow the instal
 
 To check if Node.js is installed correctly, open your command prompt or terminal and run:
 
-```bash
+```
 node --version
+```
+
+You should see the installed Node.js version, for example:
+```
+v18.16.0
+```
+
+### 3. Clone the Repository
+```
+git clone https://github.com/felipedrumond/proxy-server.git
+```
+
+### 4. Install Dependencies
+```
+cd proxy-server
+npm install
+```
+
+## Usage
+```
+npm run start
+```
