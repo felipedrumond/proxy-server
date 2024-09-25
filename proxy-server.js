@@ -81,13 +81,7 @@ app.post('/api/request', async (req, res) => {
 
 // Default GET Endpoint
 app.get('/', (req, res) => {
-    res.status(200).send({
-        objects: [
-            {
-                name: "vercel"
-            }
-        ]
-    });
+    res.status(400).send("Not allowed");
 });
 
 // Start Server
