@@ -44,6 +44,11 @@ function logRequestToRemoteServer(verb, url, requestToRemoteServer) {
     console.log('body', yellow(JSON.stringify(requestToRemoteServer.body, null, "\t")));
 } 
 
+function logRemoteResponse(remoteResponse) {
+    console.log(yellow('Received remote response:'));
+    console.log('status', yellow(remoteResponse.status));
+} 
+
 // POST /api/request Endpoint
 app.post('/api/request', async (req, res) => {
     const { url, verb, body, headers } = req.body;
@@ -82,6 +87,7 @@ app.post('/api/request', async (req, res) => {
         //     });
         // }
 
+        logRemoteResponse(remoteServerResponse);
         res.status(remoteServerResponse.status).send(responseText);
     } catch (error) {
         console.error('Error during proxying:', error);
