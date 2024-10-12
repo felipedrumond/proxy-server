@@ -4,7 +4,7 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const express = require('express');
-const { magenta } = require('colorette');
+const { magenta, green, yellow } = require('colorette');
 
 const allowedOrigins = ['http://localhost:4200', 'https://data-inspector.vercel.app'];
 
@@ -29,50 +29,60 @@ const agent = new https.Agent({
     rejectUnauthorized: false,
 });
 
+function logReceivedRequest(url, verb, body, headers) {
+    console.log(magenta('---------------------------------------------'));
+    console.log(green('Received request:'));
+    console.log(green(verb), green(url));
+    console.log('headers', green(JSON.stringify(headers, null, "\t")));
+    console.log('body', green(JSON.stringify(body, null, "\t")));
+}
+
+function logRequestToRemoteServer(verb, url, requestToRemoteServer) {
+    console.log(yellow('Requesting to remote server:'));
+    console.log(yellow(verb), yellow(url));
+    console.log('headers', yellow(JSON.stringify(requestToRemoteServer.headers, null, "\t")));
+    console.log('body', yellow(JSON.stringify(requestToRemoteServer.body, null, "\t")));
+} 
+
 // POST /api/request Endpoint
 app.post('/api/request', async (req, res) => {
-    console.log(magenta('---------------------------------------------'));
-    const { url, verb, body } = req.body;
+    const { url, verb, body, headers } = req.body;
 
-    let cookiesHeader = '';
-    if (Object.keys(req.cookies).length > 0) {
-        console.log(req.cookies);
-        cookiesHeader = Object.entries(req.cookies)
-            .map(([key, value]) => `${key}=${value}`)
-            .join('; ');
+    logReceivedRequest(url, verb, body, headers);
 
-        console.log(magenta('PROXY_SERVER: Cookies received in the request by proxy server:'));
-        console.log(cookiesHeader);
-    }
+    // let cookiesHeader = '';
+    // if (Object.keys(req.cookies).length > 0) {
+    //     cookiesHeader = Object.entries(req.cookies)
+    //         .map(([key, value]) => `${key}=${value}`)
+    //         .join('; ');
+    // }
 
     try {
-        console.log(`Proxying ${verb} request to: ${url}`);
-
-        const remoteServerResponse = await fetch(url, {
+        const requestOptionsToRemoteServer = {
             method: verb,
             headers: {
-                'Content-Type': 'application/json',
-                'Cookie': cookiesHeader,
+                // 'Cookie': cookiesHeader,
+                ...headers
             },
             body: verb !== 'GET' ? JSON.stringify(body) : undefined,
             agent: url.startsWith('https:') ? agent : null, // Ignore SSL certificate errors
-        });
+        };
 
-        console.log(`Received response from external API with status: ${remoteServerResponse.status}`);
+        logRequestToRemoteServer(verb, url, requestOptionsToRemoteServer);
+        const remoteServerResponse = await fetch(url, requestOptionsToRemoteServer);
 
         const responseText = await remoteServerResponse.text();
 
         // Forward Set-Cookie headers from External API
-        const incomingCookies = remoteServerResponse.headers.raw()['set-cookie'];
-        if (incomingCookies) {
-            console.log('Incoming Cookies from External API:', incomingCookies);
-            incomingCookies.forEach((cookieString) => {
-                res.append('Set-Cookie', cookieString);
-            });
-        }
+        // const incomingCookies = remoteServerResponse.headers.raw()['set-cookie'];
+        // if (incomingCookies) {
+        //     // console.log('Incoming Cookies from External API:', incomingCookies);
+        //     incomingCookies.forEach((cookieString) => {
+        //         res.append('Set-Cookie', cookieString);
+        //     });
+        // }
 
         res.status(remoteServerResponse.status).send(responseText);
-        console.log('Response sent to client successfully.');
     } catch (error) {
         console.error('Error during proxying:', error);
         res.status(500).send({ error });
@@ -81,7 +91,7 @@ app.post('/api/request', async (req, res) => {
 
 // Default GET Endpoint
 app.get('/', (req, res) => {
-    res.status(400).send("Not allowed");
+    res.status(400).send("GET is not supported; use POST instead.");
 });
 
 // Start Server
