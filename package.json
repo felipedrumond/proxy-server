@@ -5,7 +5,8 @@
   "main": "proxy-server.js",
   "scripts": {
     "start": "git pull && node proxy-server.js",
-    "dev": "nodemon proxy-server.js"
+    "dev": "nodemon proxy-server.js",
+    "serve": "node proxy-server.js"
   },
   "engines": {
     "node": ">=14.0.0"
