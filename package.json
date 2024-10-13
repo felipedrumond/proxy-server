@@ -4,7 +4,7 @@
   "description": "A simple proxy server for data inspection",
   "main": "proxy-server.js",
   "scripts": {
-    "start": "node proxy-server.js",
+    "start": "git pull && node proxy-server.js",
     "dev": "nodemon proxy-server.js"
   },
   "engines": {
