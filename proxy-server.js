@@ -51,6 +51,7 @@ function logRemoteResponse(remoteResponse) {
 
 // POST /api/request Endpoint
 app.post('/api/request', async (req, res) => {
+    console.clear();
     const { url, verb, body, headers } = req.body;
 
     logReceivedRequest(url, verb, body, headers);
@@ -91,6 +92,16 @@ app.post('/api/request', async (req, res) => {
         res.status(remoteServerResponse.status).send(responseText);
     } catch (error) {
         console.error('Error during proxying:', error);
+
+        // Check if the error is a timeout error
+        if (error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED')
+            res.status(408).send({ error: 'Request to remove server timed out' });
+
+        // If the error has a status property, use it
+        else if (error.status)
+            res.status(error.status).send({ error: error.message || 'Error' });
+        
+        // Fallback to 500 Internal Server Error for all other cases
         res.status(500).send({ error });
     }
 });
