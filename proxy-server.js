@@ -74,6 +74,9 @@ app.post('/api/request', async (req, res) => {
             agent: url.startsWith('https:') ? agent : null, // Ignore SSL certificate errors
         };
 
+        // delete requestOptionsToRemoteServer['Content-Length'];
+        // delete requestOptionsToRemoteServer['cookie'];
+
         logRequestToRemoteServer(verb, url, requestOptionsToRemoteServer);
         const remoteServerResponse = await fetch(url, requestOptionsToRemoteServer);
 
@@ -102,7 +105,8 @@ app.post('/api/request', async (req, res) => {
             res.status(error.status).send({ error: error.message || 'Error' });
         
         // Fallback to 500 Internal Server Error for all other cases
-        res.status(500).send({ error });
+        else
+            res.status(500).send({ error });
     }
 });
 
