@@ -10,17 +10,22 @@ const allowedOrigins = ['http://localhost:4200', 'https://data-inspector.vercel.
 
 const app = express();
 
-// Middleware Setup
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Private-Network', 'true');
+    next();
+});
 app.use(cors({
     origin: function (origin, callback) {
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
+            console.log(magenta(`Origin not allowed by CORS: ${origin}`));
             callback(new Error('Not allowed by CORS'));
         }
     },
     credentials: true
 }));
+
 app.use(cookieParser());
 app.use(bodyParser.json());
 
@@ -42,12 +47,12 @@ function logRequestToRemoteServer(verb, url, requestToRemoteServer) {
     console.log(yellow(verb), yellow(url));
     console.log('headers', yellow(JSON.stringify(requestToRemoteServer.headers, null, "\t")));
     console.log('body', yellow(JSON.stringify(requestToRemoteServer.body, null, "\t")));
-} 
+}
 
 function logRemoteResponse(remoteResponse) {
     console.log(yellow('Received remote response:'));
     console.log('status', yellow(remoteResponse.status));
-} 
+}
 
 // POST /api/request Endpoint
 app.post('/api/request', async (req, res) => {
@@ -103,7 +108,7 @@ app.post('/api/request', async (req, res) => {
         // If the error has a status property, use it
         else if (error.status)
             res.status(error.status).send({ error: error.message || 'Error' });
-        
+
         // Fallback to 500 Internal Server Error for all other cases
         else
             res.status(500).send({ error });
@@ -114,6 +119,7 @@ app.post('/api/request', async (req, res) => {
 app.get('/', (req, res) => {
     res.status(400).send("GET is not supported; use POST instead.");
 });
+
 
 // Start Server
 const PORT = process.env.PORT || 3000;
